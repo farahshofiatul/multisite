@@ -75,8 +75,12 @@ class testimoni{
 		$tableName = $wpdb->base_prefix."testimoni";
 		$data = $wpdb->get_results( "SELECT * FROM $tableName");
 		if(isset($_GET['id'])){
-			$acctid = $_GET['id'];
-			$deletedata = $wpdb->delete( $tableName, array( 'id' => $acctid ) );
+			foreach ($data as $value) {
+				if($blog_id == $value->blog_id){
+					$acctid = $_GET['id'];
+					$deletedata = $wpdb->delete( $tableName, array( 'id' => $acctid ) );
+				}
+			}
 			if(! $deletedata ){
 				echo "data tidak berhasil disimpan";
 			}
