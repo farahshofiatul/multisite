@@ -8,14 +8,14 @@ Author: farah shofiatul
 
 class testimoni{
 	//public $widget = new my_widget();
+
+	public $blog_id;
 	
 	public function __construct(){
+		$this->blog_id = get_current_blog_id();
 		add_action('admin_menu', array($this, 'setup_admin_menu'));
-		//add_action( 'widgets_init', function(){
-		//register_widget( array($this, 'widget') );});
 		add_shortcode('shortcode_testimoni', array($this, 'add_to_database'));
 		add_shortcode('shortcode_testimoni_table', array($this, 'show_testimoni_frontend'));
-		//echo "hello word";
 	}
 
 	public function setup_admin_menu() {
@@ -24,8 +24,6 @@ class testimoni{
 
 	function add_to_database(){
 		global $wpdb;
-		global $blog_id;
-	 	$blog_id = get_current_blog_id();
 		$tableName = $wpdb->base_prefix."testimoni";
 	 	if ( isset( $_POST['cf-submitted'] ) ) {
        		 $data = array('name'=>$_POST["cf-name"],
@@ -46,7 +44,7 @@ class testimoni{
 			}		   
     	}
 		echo '<form action="" method="post">';
-		echo '<input type="hidden" name="blogId" value="'.$blog_id.'"/>';
+		echo '<input type="hidden" name="blogId" value="'.$this->blog_id.'"/>';
 		echo '<p>';
 		echo 'Name (required) <br />';
 		echo '<input type="text" name="cf-name"  pattern="[a-zA-Z0-9 ]+" value="" size="40" />';
@@ -70,63 +68,52 @@ class testimoni{
 
 	function show_testimoni(){
 		global $wpdb;
-		global $blog_id;
-	 	$blog_id = get_current_blog_id();
 		$tableName = $wpdb->base_prefix."testimoni";
-		$data = $wpdb->get_results( "SELECT * FROM $tableName");
 		if(isset($_GET['id'])){
-			foreach ($data as $value) {
-				if($blog_id == $value->blog_id){
-					$acctid = $_GET['id'];
-					$deletedata = $wpdb->delete( $tableName, array( 'id' => $acctid ) );
-				}
-			}
+			$acctid = $_GET['id'];
+			$deletedata = $wpdb->delete( $tableName, array( 'id' => $acctid, 'blog_id' => $this->blog_id ) );
 			if(! $deletedata ){
 				echo "data tidak berhasil disimpan";
 			}
 			echo "Berhasil hapus data\n";
-		}else{
+		}
+		$data = $wpdb->get_results( "SELECT * FROM $tableName WHERE blog_id = $this->blog_id");
 			echo "<table id='testimoni'>";
 			echo "</tr>";
 			echo "<th>Name</th><th>Email</th><th>phone</th><th>testimoni</th><th>hapus</th>";
 			echo "</tr>";
 			foreach($data as $value){
-				if($blog_id == $value->blog_id){
-					$id = $value->id;
-					echo '<tr>';
-					echo '<td>'.$value->name.'</td>';
-					echo '<td>'.$value->email.'</td>';
-					echo '<td>'.$value->phone.'</td>';
-					echo '<td>'.$value->testimoni.'</td>';
-					echo '<td><a href="'.admin_url('admin.php?page=show_testimoni&id='.$id.'').'">Delete</a></td>';
-					echo '</tr>';
-				}
+				$id = $value->id;
+				echo '<tr>';
+				echo '<td>'.$value->name.'</td>';
+				echo '<td>'.$value->email.'</td>';
+				echo '<td>'.$value->phone.'</td>';
+				echo '<td>'.$value->testimoni.'</td>';
+				echo '<td><a href="'.admin_url('admin.php?page=show_testimoni&id='.$id.'').'">Delete</a></td>';
+				echo '</tr>';
+				
 			}
 			echo '</table>';
-		}
+		
 	}
 
 	function show_testimoni_frontend(){
 		global $wpdb;
-		global $blog_id;
-	 	$blog_id = get_current_blog_id();
 		$tableName = $wpdb->base_prefix."testimoni";
-		$data = $wpdb->get_results( "SELECT * FROM $tableName");
+		$data = $wpdb->get_results( "SELECT * FROM $tableName WHERE blog_id = $this->blog_id");
 		echo "<table id='testimoni'>";
 		echo "</tr>";
 		echo "<th>id</th><th>Name</th><th>Email</th><th>phone</th><th>testimoni</th>";
 		echo "</tr>";
 		foreach($data as $value){
-			if($blog_id == $value->blog_id){
-				$id = $value->id;
-				echo '<tr>';
-				echo '<td>'.$value->id.'</td>';
-				echo '<td>'.$value->name.'</td>';
-				echo '<td>'.$value->email.'</td>';
-				echo '<td>'.$value->phone.'</td>';
-				echo '<td>'.$value->testimoni.'</td>';
-				echo '</tr>';
-			}
+			$id = $value->id;
+			echo '<tr>';
+			echo '<td>'.$value->id.'</td>';
+			echo '<td>'.$value->name.'</td>';
+			echo '<td>'.$value->email.'</td>';
+			echo '<td>'.$value->phone.'</td>';
+			echo '<td>'.$value->testimoni.'</td>';
+			echo '</tr>';
 		}
 		echo "</table>";
 	}
@@ -143,18 +130,13 @@ class My_Widget extends WP_Widget {
 	}
 	public function widget( $args, $instance ) {
 		global $wpdb;
-		global $blog_id;
-	 	$blog_id = get_current_blog_id();
 		$tableName = $wpdb->base_prefix."testimoni";
-		//$sql = $wpdb->prepare( );
 		$data = $wpdb->get_results("
         SELECT *
-        FROM $tableName WHERE blog_id = $blog_id
+        FROM $tableName WHERE blog_id = $this->blog_id
         ORDER BY RAND()
         LIMIT 1");
 		echo $args['before_widget'];
-		//if title is present
-		//var_dump($data);
 		echo ('Testimoni');
 		echo '</br>';
 		foreach ($data as $value) {
